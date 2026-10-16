@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 import json
-import time
 
 app = Flask(__name__)
 
-# 데이터베이스 초기화 (응답 데이터 저장용)
 def init_db():
     conn = sqlite3.connect('quiz_results.db')
     c = conn.cursor()
@@ -24,19 +22,17 @@ def init_db():
 
 init_db()
 
-# 1. 메인 퀴즈 페이지
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# 2. 퀴즈 제출 및 데이터 저장 API
 @app.route('/submit', methods=['POST'])
 def submit():
     data = request.json
     user_name = data.get('user_name')
     score = data.get('score')
-    total_time = data.get('total_time') # 초 단위
-    answers = json.dumps(data.get('answers')) # [1, 3, 2, ...] 형태
+    total_time = data.get('total_time')
+    answers = json.dumps(data.get('answers'))
 
     conn = sqlite3.connect('quiz_results.db')
     c = conn.cursor()
@@ -49,12 +45,12 @@ def submit():
 
     return jsonify({"status": "success"})
 
-# 3. 결과 분석 및 통계 API (관리자/통계용)
 @app.route('/api/stats')
 def get_stats():
     conn = sqlite3.connect('quiz_results.db')
     c = conn.cursor()
-    c.execute('SELECT score, total_time, answers FROM responses')
+    # 개별 응답 내역까지 같이 조회
+    c.execute('SELECT user_name, score, total_time, answers, created_at FROM responses ORDER BY id DESC')
     rows = c.fetchall()
     conn.close()
 
@@ -63,29 +59,40 @@ def get_stats():
         return jsonify({
             "total_count": 0,
             "avg_time": 0,
-            "question_stats": {}
+            "question_stats": {},
+            "user_responses": []
         })
 
-    avg_time = round(sum(r[1] for r in rows) / total_count, 1)
+    avg_time = round(sum(r[2] for r in rows) / total_count, 1)
 
-    # 15개 문제별 선택지 응답 집계
-    # answers_stat = { 1: {1: 5, 2: 10, ...}, 2: {...} }
-    question_stats = {q: {1: 0, 2: 0, 3: 0, 4: 0} for q in range(1, 16)}
+    # 15개 문제 집계 준비
+    question_stats = {q: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0} for q in range(1, 16)}
+    user_responses = []
 
     for row in rows:
-        ans_list = json.loads(row[2]) # [q1_ans, q2_ans, ...]
+        u_name, score, t_time, ans_json, created_at = row
+        ans_list = json.loads(ans_json) if ans_json else []
+
         for q_idx, selected_opt in enumerate(ans_list):
             q_num = q_idx + 1
             if q_num in question_stats and selected_opt in question_stats[q_num]:
                 question_stats[q_num][selected_opt] += 1
 
+        user_responses.append({
+            "name": u_name,
+            "score": score,
+            "time": t_time,
+            "answers": ans_list,
+            "date": created_at
+        })
+
     return jsonify({
         "total_count": total_count,
         "avg_time": avg_time,
-        "question_stats": question_stats
+        "question_stats": question_stats,
+        "user_responses": user_responses
     })
 
-# 4. 통계 화면 페이지
 @app.route('/admin')
 def admin():
     return render_template('admin.html')
