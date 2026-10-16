@@ -49,7 +49,6 @@ def submit():
 def get_stats():
     conn = sqlite3.connect('quiz_results.db')
     c = conn.cursor()
-    # 개별 응답 내역까지 같이 조회
     c.execute('SELECT user_name, score, total_time, answers, created_at FROM responses ORDER BY id DESC')
     rows = c.fetchall()
     conn.close()
@@ -65,8 +64,8 @@ def get_stats():
 
     avg_time = round(sum(r[2] for r in rows) / total_count, 1)
 
-    # 15개 문제 집계 준비
-    question_stats = {q: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0} for q in range(1, 16)}
+    # 10문제 집계 (1번부터 10번 문제까지)
+    question_stats = {q: {1: 0, 2: 0, 3: 0, 4: 0} for q in range(1, 11)}
     user_responses = []
 
     for row in rows:
