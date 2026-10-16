@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인텔리안 할로윈 상식 고사</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: #120826;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 모바일 카드 스타일 컨테이너 */
+        .quiz-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 932px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+
+        /* 화면 영역 공통 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: translateY(20px);
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        /* 1. 시작 화면 */
+        #start-screen {
+            background-image: url('/static/main_bg.png');
+            justify-content: flex-end;
+            padding-bottom: 60px;
+        }
+
+        .input-box {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #ff9e22;
+            background: rgba(20, 10, 35, 0.85);
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        .start-btn, .next-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #ff9e22, #ff5200);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 120, 0, 0.4);
+        }
+
+        /* 2. 문제 화면 */
+        #quiz-screen {
+            background-image: url('/static/quiz_bg.png');
+            justify-content: flex-start;
+            padding-top: 50px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 33%;
+            background: #ff9e22;
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: #ffb74d;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        .options-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 10, 35, 0.75);
+            color: #efefef;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn.selected {
+            background: #ff9e22;
+            color: #120826;
+            font-weight: bold;
+            border-color: #ff9e22;
+        }
+
+        /* 3. 분석 중 로딩 스피너 화면 */
+        #loading-screen {
+            background-image: url('/static/main_bg.png');
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            border-top: 6px solid #ff9e22;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 4. 결과 화면 */
+        #result-screen {
+            background-image: url('/static/quiz_bg.png');
+            justify-content: center;
+            text-align: center;
+        }
+
+        .result-card {
+            background: rgba(20, 10, 35, 0.85);
+            border: 2px solid #ff9e22;
+            border-radius: 20px;
+            padding: 30px 20px;
+            width: 100%;
+        }
+
+        .result-title {
+            font-size: 24px;
+            color: #ff9e22;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-size: 40px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #fff;
+        }
+
+        .result-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ddd;
+            margin-bottom: 20px;
+            word-break: keep-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- 1. 시작 화면 -->
+    <div id="start-screen" class="screen active">
+        <div style="width: 100%;">
+            <div class="input-box">
+                <input type="text" id="user-name" placeholder="이름을 입력해주세요!" autocomplete="off">
+            </div>
+            <button class="start-btn" onclick="startQuiz()">🎃 테스트 시작하기</button>
+        </div>
+    </div>
+
+    <!-- 2. 퀴즈 진행 화면 -->
+    <div id="quiz-screen" class="screen">
+        <div style="width: 100%;">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="question-number" id="question-number">Q1.</div>
+            <div class="question-text" id="question-text">문제 내용이 들어갑니다.</div>
+            <div class="options-container" id="options-container">
+                <!-- 보기 버튼들이 dynamic하게 들어옵니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 분석 중 로딩 화면 (3초) -->
+    <div id="loading-screen" class="screen">
+        <div class="spinner"></div>
+        <h2 style="color: #fff;">할로윈 결과 분석 중...👻</h2>
+    </div>
+
+    <!-- 4. 결과 화면 -->
+    <div id="result-screen" class="screen">
+        <div class="result-card">
+            <div class="result-title" id="result-title">결과 타이틀</div>
+            <div class="result-score" id="result-score">0 / 3</div>
+            <p class="result-desc" id="result-desc">결과 멘트가 들어갑니다.</p>
+            <button class="start-btn" onclick="location.reload()">🔄 다시 하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 예시 문제 데이터 (3문제, 선지 5개)
+    const questions = [
+        {
+            q: "우리 회사(인텔리안)의 주력 핵심 기술 분야는 무엇일까요?",
+            options: [
+                "1. 잠수함 전용 엔진 개발",
+                "2. 위성 통신 안테나 시스템",
+                "3. 우주선 식품 제조",
+                "4. 심해 해저 케이블 설치",
+                "5. 드론 택시 배터리 제조"
+            ],
+            answer: 2
+        },
+        {
+            q: "할로윈의 대표적인 상징인 '호박 등불'의 명칭은 무엇일까요?",
+            options: [
+                "1. 잭오랜턴 (Jack-o'-lantern)",
+                "2. 호박스프",
+                "3. 펌킨 랜턴 메이커",
+                "4. 캔디 랜턴",
+                "5. 핼러윈 라이트"
+            ],
+            answer: 1
+        },
+        {
+            q: "할로윈 날 아이들이 사탕을 받으러 다니며 외치는 말은?",
+            options: [
+                "1. Happy New Year!",
+                "2. Open the Door!",
+                "3. Trick or Treat!",
+                "4. Give me Candy!",
+                "5. 메리 크리스마스!"
+            ],
+            answer: 3
+        }
+    ];
+
+    let currentQ = 0;
+    let userName = "";
+    let selectedAnswers = [];
+    let score = 0;
+    let startTime = 0;
+
+    function startQuiz() {
+        const nameInput = document.getElementById('user-name').value.trim();
+        if (!nameInput) {
+            alert("이름을 입력해주세요!");
+            return;
+        }
+        userName = nameInput;
+        startTime = Date.now();
+
+        showScreen('quiz-screen');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const qData = questions[currentQ];
+        document.getElementById('question-number').innerText = `Q${currentQ + 1} / ${questions.length}`;
+        document.getElementById('question-text').innerText = qData.q;
+        
+        // 진행도 바 업데이트
+        const progressPercent = ((currentQ + 1) / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+        // 선지 생성
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        qData.options.forEach((optText, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = optText;
+            btn.onclick = () => selectOption(idx + 1);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(optionNum) {
+        selectedAnswers.push(optionNum);
+        
+        // 정답 체크
+        if (optionNum === questions[currentQ].answer) {
+            score++;
+        }
+
+        currentQ++;
+
+        if (currentQ < questions.length) {
+            loadQuestion();
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function finishQuiz() {
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+
+        // 1. 로딩 화면 표시 (3초)
+        showScreen('loading-screen');
+
+        // 2. 서버에 저장 요청
+        fetch('/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_name: userName,
+                score: score,
+                total_time: parseFloat(totalTime),
+                answers: selectedAnswers
+            })
+        });
+
+        // 3. 3초 후 결과 보여주기
+        setTimeout(() => {
+            showResult();
+            showScreen('result-screen');
+        }, 3000);
+    }
+
+    function showResult() {
+        document.getElementById('result-score').innerText = `${score} / ${questions.length}`;
+        
+        const titleEl = document.getElementById('result-title');
+        const descEl = document.getElementById('result-desc');
+
+        // 점수별 결과 멘트 분기
+        if (score === 0) {
+            titleEl.innerText = "👻 앗... 꽝!";
+            descEl.innerText = `${userName}님, 혹시 영혼만 참석하셨나요? 할로윈 유령이 정답을 싹 가져가 버렸네요!`;
+        } else if (score < questions.length) {
+            titleEl.innerText = "🎃 오~ 참 잘했어요!";
+            descEl.innerText = `${userName}님, 아쉽게 몇 문제 틀렸지만 훌륭합니다! 할로윈 호박이 당신을 응원합니다.`;
+        } else {
+            titleEl.innerText = "🏆 만점! 인텔리안 브레인!";
+            descEl.innerText = `축하합니다 ${userName}님! 완벽한 상식왕이시군요! 완벽한 답변으로 할로윈의 지배자가 되셨습니다!🎉`;
+        }
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+</script>
+
+</body>
+</html>
