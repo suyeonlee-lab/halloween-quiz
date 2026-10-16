@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>할로윈 퀴즈 통계 대시보드</title>
+    <title>할로윈 퀴즈 응답 통계 대시보드</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         * {
@@ -16,7 +16,7 @@
             background-color: #120826;
             color: #fff;
             padding: 24px;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         h1 {
@@ -26,13 +26,13 @@
         }
         h2 {
             font-size: 18px;
-            margin: 20px 0 10px 0;
+            margin: 30px 0 15px 0;
             color: #ffb74d;
         }
         .stats-summary {
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .card {
             background: rgba(255, 255, 255, 0.08);
@@ -52,16 +52,56 @@
             font-weight: bold;
             color: #ff9e22;
         }
+
+        /* 반응형 차트 그리드 정돈 */
         .chart-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
         }
         .chart-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 15px;
+            padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            height: 320px;
+        }
+
+        /* 개인별 상세 응답 테이블 스티일 */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+        th {
+            background: rgba(255, 158, 34, 0.2);
+            color: #ffb74d;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #ff9e22;
+            color: #120826;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -83,6 +123,26 @@
 <h2>📊 문제별 답변 비율 (파이 차트)</h2>
 <div class="chart-grid" id="charts-container"></div>
 
+<h2>📝 참여자별 상세 응답 데이터</h2>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>점수</th>
+                <th>소요시간</th>
+                <th>선택한 답안 (Q1~Q15)</th>
+                <th>참여 일시</th>
+            </tr>
+        </thead>
+        <tbody id="response-table-body">
+            <tr>
+                <td colspan="5" style="text-align: center; color: #aaa;">데이터를 불러오는 중입니다...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 <script>
     async function loadStats() {
         try {
@@ -92,47 +152,72 @@
             document.getElementById('total-count').innerText = `${data.total_count}명`;
             document.getElementById('avg-time').innerText = `${data.avg_time}초`;
 
+            // 1. 파이 차트 그리기
             const container = document.getElementById('charts-container');
             container.innerHTML = '';
 
             if (data.total_count === 0) {
                 container.innerHTML = '<p style="color:#aaa;">아직 참여 데이터가 없습니다.</p>';
-                return;
+            } else {
+                for (let qNum in data.question_stats) {
+                    const qStats = data.question_stats[qNum];
+                    const values = [qStats[1]||0, qStats[2]||0, qStats[3]||0, qStats[4]||0, qStats[5]||0];
+                    
+                    // 응답이 하나라도 있는 문제만 또는 전체 표현
+                    const chartDiv = document.createElement('div');
+                    chartDiv.className = 'chart-card';
+                    chartDiv.id = `chart-q${qNum}`;
+                    container.appendChild(chartDiv);
+
+                    const plotData = [{
+                        values: values,
+                        labels: ['1번', '2번', '3번', '4번', '5번'],
+                        type: 'pie',
+                        textinfo: 'percent',
+                        hoverinfo: 'label+value+percent',
+                        insidetextorientation: 'horizontal',
+                        marker: {
+                            colors: ['#ff9e22', '#ff5200', '#b388ff', '#00e676', '#29b6f6']
+                        }
+                    }];
+
+                    const layout = {
+                        title: { text: `Q${qNum}번 문제`, font: { color: '#ffffff', size: 15 } },
+                        autosize: true,
+                        margin: { t: 40, b: 20, l: 20, r: 80 },
+                        paper_bgcolor: 'transparent',
+                        plot_bgcolor: 'transparent',
+                        showlegend: true,
+                        legend: { font: { color: '#ffffff', size: 11 }, x: 1, y: 0.5 }
+                    };
+
+                    Plotly.newPlot(`chart-q${qNum}`, plotData, layout, {responsive: true});
+                }
             }
 
-            for (let qNum in data.question_stats) {
-                const chartDiv = document.createElement('div');
-                chartDiv.className = 'chart-card';
-                chartDiv.id = `chart-q${qNum}`;
-                container.appendChild(chartDiv);
+            // 2. 참여자별 상세 응답 테이블 채우기
+            const tbody = document.getElementById('response-table-body');
+            tbody.innerHTML = '';
 
-                const qStats = data.question_stats[qNum];
-                const labels = ['1번', '2번', '3번', '4번', '5번'];
-                const values = [qStats[1]||0, qStats[2]||0, qStats[3]||0, qStats[4]||0, qStats[5]||0];
+            if (data.user_responses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #aaa;">참여 기록이 없습니다.</td></tr>';
+            } else {
+                data.user_responses.forEach(user => {
+                    const tr = document.createElement('tr');
+                    
+                    const answersFormatted = user.answers.map((ans, idx) => `Q${idx+1}:${ans}번`).join(', ');
 
-                const plotData = [{
-                    values: values,
-                    labels: labels,
-                    type: 'pie',
-                    textinfo: 'label+percent',
-                    insidetextorientation: 'radial',
-                    marker: {
-                        colors: ['#ff9e22', '#ff5200', '#b388ff', '#00e676', '#29b6f6']
-                    }
-                }];
-
-                const layout = {
-                    title: { text: `Q${qNum}번 문제 답변 비율`, font: { color: '#ffffff', size: 16 } },
-                    height: 280,
-                    margin: { t: 40, b: 20, l: 20, r: 20 },
-                    paper_bgcolor: 'transparent',
-                    plot_bgcolor: 'transparent',
-                    showlegend: true,
-                    legend: { font: { color: '#ffffff' } }
-                };
-
-                Plotly.newPlot(`chart-q${qNum}`, plotData, layout);
+                    tr.innerHTML = `
+                        <td><strong>${user.name}</strong></td>
+                        <td><span class="score-badge">${user.score}점</span></td>
+                        <td>${user.time}초</td>
+                        <td>${answersFormatted}</td>
+                        <td style="color:#aaa;">${user.date}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
+
         } catch (err) {
             console.error(err);
         }
