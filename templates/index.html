@@ -131,7 +131,7 @@
         .question-text {
             font-size: 18px;
             font-weight: bold;
-            text.align: center;
+            text-align: center;
             margin-bottom: 25px;
             line-height: 1.4;
             word-break: keep-all;
@@ -221,6 +221,7 @@
             color: #ddd;
             margin-bottom: 20px;
             word-break: keep-all;
+            white-space: pre-line;
         }
     </style>
 </head>
@@ -277,7 +278,7 @@
 </div>
 
 <script>
-    // 인텔리안 10문제 데이터
+    // 10문제 정확한 문제 및 정답 데이터
     const questions = [
         {
             q: "인텔리안 제품이 활약하는 곳은 어디일까요?",
@@ -340,12 +341,12 @@
             answer: 1
         },
         {
-            q: "해양 수도 부산에 위치한 인텔리안 부산 사업장이 담당하는 주요 핵심 기능으로 가장 거리가 먼 것은 무엇일까요?",
+            q: "해양 수도 부산에 위치한 인텔리안 부산 사업장의 핵심 역할 및 기능으로 가장 거리가 먼 것은?",
             options: [
                 "① 해상 위성 통신(VSAT) 안테나 시험 및 R&D",
-                "② 글로벌 선주 및 고객사 대상 해상 서비스 지원",
-                "③ 해상 환경 실증 테스트",
-                "④ 부산 앞바다에서 부캉이 구경하기"
+                "② 글로벌 선주 및 고객사 대상 해상 기술 지원",
+                "③ 실제 해상 환경 실증 및 품질 검증",
+                "④ 부산 앞바다 직접 어로 작업 및 해산물 수급"
             ],
             answer: 4
         },
@@ -450,7 +451,6 @@
 
         showScreen('loading-screen');
 
-        // 서버 전송 (이름 뒤에 거점 표기: 예 - 이수연(판교))
         fetch('/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -474,16 +474,15 @@
         const titleEl = document.getElementById('result-title');
         const descEl = document.getElementById('result-desc');
 
-        // 10문제 기준 점수 구간별 결과
         if (score <= 3) {
-            titleEl.innerText = "👻 영혼만 출근한 인텔리안 유령";
-            descEl.innerText = `앗, ${userName}님! 정답을 할로윈 유령이 몽땅 훔쳐갔군요... 혹시 오늘 영혼만 [${userLocation}] 거점으로 출근하셨나요? 🎃 사탕 드시고 기운 내서 다시 도전해보세요!`;
+            titleEl.innerText = "👻 영혼 탈곡기 가동! 앗... 꽝!";
+            descEl.innerText = `🚨 비상! [${userLocation}] 거점에 출몰한 할로윈 유령이 ${userName}님의 정답을 싹 털어갔습니다!\n오늘 몸만 출근하고 영혼은 침대에 두고 오셨나요? 달콤한 사탕 드시고 안테나 신호 다시 잡아서 재도전해보세요! 🍬`;
         } else if (score <= 7) {
-            titleEl.innerText = "🎃 [${userLocation}] 거점의 훌륭한 인텔리안인!";
-            descEl.innerText = `오~ 제법인데요, ${userName}님! 인텔리안의 핵심 지식을 거의 파악하고 계시군요! 조금만 더 신호를 다듬으면 만점 위성 빔을 쏠 수 있습니다!⚡`;
+            titleEl.innerText = "🎃 제법인데? 명예 인텔리안 호박!";
+            descEl.innerText = `오~ 훌륭합니다! ${userName}님은 [${userLocation}]을 대표하는 든든한 상식러!\n몇몇 고난도 함정에 살짝 걸렸지만 위성 궤도는 거의 다 맞추셨어요. 딱 3문제만 더 맞히면 글로벌 1위 궤도 진입 가능합니다! 🛰️⚡`;
         } else {
-            titleEl.innerText = "🏆 완벽한 지능형 안테나! 만점 브레인";
-            descEl.innerText = `축하합니다 ${userName}님! [${userLocation}]을 대표하는 완벽한 인텔리안 상식왕이십니다! 무결점 100% 신호로 할로윈의 지배자가 되셨습니다!🎉🛰️`;
+            titleEl.innerText = "🏆 완벽한 지능형 브레인! 상식 고수 등장!";
+            descEl.innerText = `🎉 축하합니다 ${userName}님! [${userLocation}]을 대표하는 완벽한 인텔리안 상식왕이십니다!🛰️`완벽한 지식으로 할로윈 축제를 정복하셨습니다. 당당하게 사탕 받으러 가세요! 🍭👑`;
         }
     }
 
