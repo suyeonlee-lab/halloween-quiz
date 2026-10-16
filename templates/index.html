@@ -98,11 +98,12 @@
             margin-top: 10px;
         }
 
-        /* 2. 문제 화면 */
+       /* 2. 문제 화면 (중앙 정렬로 위치 조정) */
         #quiz-screen {
             background-image: url("{{ url_for('static', filename='quiz_bg.png') }}");
-            justify-content: flex-start;
-            padding-top: 50px;
+            justify-content: center; /* 위쪽 쏠림 해결 및 중앙 정렬 */
+            padding-top: 40px;
+            padding-bottom: 60px;
         }
 
         .progress-bar-container {
