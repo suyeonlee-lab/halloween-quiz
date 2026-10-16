@@ -63,27 +63,28 @@
         #start-screen {
             background-image: url("{{ url_for('static', filename='main_bg.png') }}");
             justify-content: flex-end;
-            padding-bottom: 60px;
+            padding-bottom: 50px;
         }
 
         .input-box {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
-        .input-box input {
+        .input-box input, .input-box select {
             width: 100%;
-            padding: 16px;
+            padding: 15px;
             border-radius: 12px;
             border: 2px solid #ff9e22;
-            background: rgba(20, 10, 35, 0.85);
+            background: rgba(20, 10, 35, 0.9);
             color: #fff;
-            font-size: 16px;
+            font-size: 15px;
             text-align: center;
             outline: none;
+            appearance: none;
         }
 
-        .start-btn, .next-btn {
+        .start-btn {
             width: 100%;
             padding: 18px;
             border-radius: 12px;
@@ -94,6 +95,7 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 120, 0, 0.4);
+            margin-top: 10px;
         }
 
         /* 2. 문제 화면 */
@@ -114,7 +116,7 @@
 
         .progress-bar {
             height: 100%;
-            width: 33%;
+            width: 10%;
             background: #ff9e22;
             transition: width 0.3s ease;
         }
@@ -127,10 +129,10 @@
         }
 
         .question-text {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            text-align: center;
-            margin-bottom: 30px;
+            text.align: center;
+            margin-bottom: 25px;
             line-height: 1.4;
             word-break: keep-all;
         }
@@ -139,33 +141,34 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .option-btn {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(20, 10, 35, 0.75);
+            background: rgba(20, 10, 35, 0.8);
             color: #efefef;
-            font-size: 15px;
+            font-size: 14px;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s;
+            line-height: 1.3;
         }
 
-        .option-btn.selected {
+        .option-btn:active {
             background: #ff9e22;
             color: #120826;
             font-weight: bold;
-            border-color: #ff9e22;
         }
 
-        /* 3. 분석 중 로딩 스피너 화면 */
+        /* 3. 로딩 화면 */
         #loading-screen {
             background-image: url("{{ url_for('static', filename='main_bg.png') }}");
             justify-content: center;
+            text-align: center;
         }
 
         .spinner {
@@ -175,7 +178,7 @@
             border-top: 6px solid #ff9e22;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin: 0 auto 20px auto;
         }
 
         @keyframes spin {
@@ -191,7 +194,7 @@
         }
 
         .result-card {
-            background: rgba(20, 10, 35, 0.85);
+            background: rgba(20, 10, 35, 0.88);
             border: 2px solid #ff9e22;
             border-radius: 20px;
             padding: 30px 20px;
@@ -199,21 +202,21 @@
         }
 
         .result-title {
-            font-size: 24px;
+            font-size: 22px;
             color: #ff9e22;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
         .result-score {
-            font-size: 40px;
+            font-size: 38px;
             font-weight: bold;
             margin: 15px 0;
             color: #fff;
         }
 
         .result-desc {
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.6;
             color: #ddd;
             margin-bottom: 20px;
@@ -228,9 +231,17 @@
     <div id="start-screen" class="screen active">
         <div style="width: 100%;">
             <div class="input-box">
-                <input type="text" id="user-name" placeholder="이름을 입력해주세요!" autocomplete="off">
+                <input type="text" id="user-name" placeholder="🎃 성함을 입력해주세요!" autocomplete="off">
             </div>
-            <button class="start-btn" onclick="startQuiz()">🎃 테스트 시작하기</button>
+            <div class="input-box">
+                <select id="user-location">
+                    <option value="" disabled selected>👻 당신이 소환된 거점은?</option>
+                    <option value="판교">판교 (IT 밸리 유령)</option>
+                    <option value="평택">평택 (최첨단 안테나 기지)</option>
+                    <option value="부산">부산 (망망대해 해상 유령)</option>
+                </select>
+            </div>
+            <button class="start-btn" onclick="startQuiz()">🎃 상식 고사 시작하기</button>
         </div>
     </div>
 
@@ -241,80 +252,157 @@
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
             <div class="question-number" id="question-number">Q1.</div>
-            <div class="question-text" id="question-text">문제 내용이 들어갑니다.</div>
-            <div class="options-container" id="options-container">
-                <!-- 보기 버튼들이 dynamic하게 들어옵니다 -->
-            </div>
+            <div class="question-text" id="question-text">문제 내용</div>
+            <div class="options-container" id="options-container"></div>
         </div>
     </div>
 
     <!-- 3. 분석 중 로딩 화면 (3초) -->
     <div id="loading-screen" class="screen">
-        <div class="spinner"></div>
-        <h2 style="color: #fff;">할로윈 결과 분석 중...👻</h2>
+        <div>
+            <div class="spinner"></div>
+            <h2 style="color: #fff;">위성 빔 조정 중...🛰️<br>할로윈 점수 분석 중!👻</h2>
+        </div>
     </div>
 
     <!-- 4. 결과 화면 -->
     <div id="result-screen" class="screen">
         <div class="result-card">
             <div class="result-title" id="result-title">결과 타이틀</div>
-            <div class="result-score" id="result-score">0 / 3</div>
-            <p class="result-desc" id="result-desc">결과 멘트가 들어갑니다.</p>
-            <button class="start-btn" onclick="location.reload()">🔄 다시 하기</button>
+            <div class="result-score" id="result-score">0 / 10</div>
+            <p class="result-desc" id="result-desc">결과 멘트</p>
+            <button class="start-btn" onclick="location.reload()">🔄 다시 도전하기</button>
         </div>
     </div>
 </div>
 
 <script>
+    // 인텔리안 10문제 데이터
     const questions = [
         {
-            q: "우리 회사(인텔리안)의 주력 핵심 기술 분야는 무엇일까요?",
+            q: "인텔리안 제품이 활약하는 곳은 어디일까요?",
             options: [
-                "1. 잠수함 전용 엔진 개발",
-                "2. 위성 통신 안테나 시스템",
-                "3. 우주선 식품 제조",
-                "4. 심해 해저 케이블 설치",
-                "5. 드론 택시 배터리 제조"
+                "① 놀이공원",
+                "② 주방과 냉장고",
+                "③ 바다와 육지, 하늘",
+                "④ 지하철역"
+            ],
+            answer: 3
+        },
+        {
+            q: "인텔리안 Flat Panel 안테나는 기계적으로 크게 움직이는 대신 어떻게 위성 방향을 맞출까요?",
+            options: [
+                "① 배를 돌린다",
+                "② 전자적으로 빔 방향을 조정한다",
+                "③ 안테나를 접었다 편다",
+                "④ 갈매기에게 방향을 물어본다"
             ],
             answer: 2
         },
         {
-            q: "할로윈의 대표적인 상징인 '호박 등불'의 명칭은 무엇일까요?",
+            q: "전 세계 해상 조난 및 안전 시스템 GMDSS는 바다에서 어떤 상황에 특히 중요한 체계일까요?",
             options: [
-                "1. 잭오랜턴 (Jack-o'-lantern)",
-                "2. 호박스프",
-                "3. 펌킨 랜턴 메이커",
-                "4. 캔디 랜턴",
-                "5. 핼러윈 라이트"
+                "① 해산물 요리 대회",
+                "② 선상 노래방",
+                "③ 낚시 대회",
+                "④ 조난·긴급 상황"
+            ],
+            answer: 4
+        },
+        {
+            q: "우리 회사 이름 'Intellian(인텔리안)'의 탄생 배경이자 진짜 의미는 무엇일까요?",
+            options: [
+                "① Intel + Alien (외계인 수준의 천재 기술력)",
+                "② Intelligent + Antenna (지능형 안테나)",
+                "③ International + Alliance (글로벌 해상 동맹)",
+                "④ Internet + Brilliant (눈부신 위성 인터넷)"
+            ],
+            answer: 2
+        },
+        {
+            q: "인텔리안과 긴밀하게 협력하며 저궤도(LEO) 및 중궤도(MEO) 차세대 위성 통신망을 함께 구축하는 글로벌 파트너사가 아닌 곳은?",
+            options: [
+                "① Eutelsat OneWeb",
+                "② SES",
+                "③ Telesat",
+                "④ Paul Bassett (폴바셋)"
+            ],
+            answer: 4
+        },
+        {
+            q: "망망대해를 항해하는 크루즈와 어선에서도 끊김 없이 TV 방송을 시청할 수 있도록 돕는 인텔리안의 대표 위성 TV 안테나 시리즈 명칭은?",
+            options: [
+                "① i-Series",
+                "② v-Series",
+                "③ Netflix-Series",
+                "④ K-series"
             ],
             answer: 1
         },
         {
-            q: "할로윈 날 아이들이 사탕을 받으러 다니며 외치는 말은?",
+            q: "인텔리안이 글로벌 1위 경쟁력을 유지하기 위해 매년 연구개발(R&D)에 적극 투자하고 있는 연간 매출액 대비 R&D 투자 비율은 대략 얼마일까요?",
             options: [
-                "1. Happy New Year!",
-                "2. Open the Door!",
-                "3. Trick or Treat!",
-                "4. Give me Candy!",
-                "5. 메리 크리스마스!"
+                "① 약 1%",
+                "② 약 5%",
+                "③ 약 15%",
+                "④ 0%"
             ],
             answer: 3
+        },
+        {
+            q: "군/방위산업(Mil/Gov)을 위해 만들어진 제품 중, 군인들이 전장에서 '직접 메고 다닐 수 있도록' 가볍고 튼튼하게 설계된 LEO 터미널의 이름은 무엇일까요?",
+            options: [
+                "① Jetpack",
+                "② Ironpack",
+                "③ Manpack",
+                "④ Backpack"
+            ],
+            answer: 3
+        },
+        {
+            q: "인텔리안의 최첨단 위성 안테나 연구개발 센터와 대규모 핵심 제조 시설(캠퍼스)이 자리 잡고 있는 국내 도시는 어디일까요?",
+            options: [
+                "① 경기도 평택",
+                "② 제주특별자치도",
+                "③ 강원도 속초",
+                "④ 그대 마음속…☆"
+            ],
+            answer: 1
+        },
+        {
+            q: "회사의 성장을 함께 응원하는 직장인이라면 꼭 알아야 할 인텔리안테크의 코스닥 종목 코드는 무엇일까요?",
+            options: [
+                "① 035420",
+                "② 000660",
+                "③ 005930",
+                "④ 189300"
+            ],
+            answer: 4
         }
     ];
 
     let currentQ = 0;
     let userName = "";
+    let userLocation = "";
     let selectedAnswers = [];
     let score = 0;
     let startTime = 0;
 
     function startQuiz() {
         const nameInput = document.getElementById('user-name').value.trim();
+        const locationInput = document.getElementById('user-location').value;
+
         if (!nameInput) {
-            alert("이름을 입력해주세요!");
+            alert("성함을 입력해주세요!");
             return;
         }
+        if (!locationInput) {
+            alert("거점(판교/평택/부산)을 선택해주세요!");
+            return;
+        }
+
         userName = nameInput;
+        userLocation = locationInput;
         startTime = Date.now();
 
         showScreen('quiz-screen');
@@ -362,11 +450,12 @@
 
         showScreen('loading-screen');
 
+        // 서버 전송 (이름 뒤에 거점 표기: 예 - 이수연(판교))
         fetch('/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_name: userName,
+                user_name: `${userName}(${userLocation})`,
                 score: score,
                 total_time: parseFloat(totalTime),
                 answers: selectedAnswers
@@ -385,15 +474,16 @@
         const titleEl = document.getElementById('result-title');
         const descEl = document.getElementById('result-desc');
 
-        if (score === 0) {
-            titleEl.innerText = "👻 앗... 꽝!";
-            descEl.innerText = `${userName}님, 혹시 영혼만 참석하셨나요? 할로윈 유령이 정답을 싹 가져가 버렸네요!`;
-        } else if (score < questions.length) {
-            titleEl.innerText = "🎃 오~ 참 잘했어요!";
-            descEl.innerText = `${userName}님, 아쉽게 몇 문제 틀렸지만 훌륭합니다! 할로윈 호박이 당신을 응원합니다.`;
+        // 10문제 기준 점수 구간별 결과
+        if (score <= 3) {
+            titleEl.innerText = "👻 영혼만 출근한 인텔리안 유령";
+            descEl.innerText = `앗, ${userName}님! 정답을 할로윈 유령이 몽땅 훔쳐갔군요... 혹시 오늘 영혼만 [${userLocation}] 거점으로 출근하셨나요? 🎃 사탕 드시고 기운 내서 다시 도전해보세요!`;
+        } else if (score <= 7) {
+            titleEl.innerText = "🎃 [${userLocation}] 거점의 훌륭한 인텔리안인!";
+            descEl.innerText = `오~ 제법인데요, ${userName}님! 인텔리안의 핵심 지식을 거의 파악하고 계시군요! 조금만 더 신호를 다듬으면 만점 위성 빔을 쏠 수 있습니다!⚡`;
         } else {
-            titleEl.innerText = "🏆 만점! 인텔리안 브레인!";
-            descEl.innerText = `축하합니다 ${userName}님! 완벽한 상식왕이시군요! 완벽한 답변으로 할로윈의 지배자가 되셨습니다!🎉`;
+            titleEl.innerText = "🏆 완벽한 지능형 안테나! 만점 브레인";
+            descEl.innerText = `축하합니다 ${userName}님! [${userLocation}]을 대표하는 완벽한 인텔리안 상식왕이십니다! 무결점 100% 신호로 할로윈의 지배자가 되셨습니다!🎉🛰️`;
         }
     }
 
