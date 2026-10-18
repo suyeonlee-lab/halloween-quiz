@@ -18,10 +18,25 @@
             max-width: 1000px;
             margin: 0 auto;
         }
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
         h1 {
             color: #ff9e22;
-            margin-bottom: 20px;
             font-size: 24px;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #00c853, #009624);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0, 200, 83, 0.3);
         }
         h2 {
             font-size: 18px;
@@ -29,7 +44,6 @@
             color: #ffb74d;
         }
 
-        /* 거점 필터 버튼 스타일 */
         .filter-container {
             display: flex;
             gap: 10px;
@@ -152,20 +166,14 @@
             color: #120826;
             font-weight: bold;
         }
-        .loc-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            font-size: 12px;
-            margin-left: 6px;
-        }
     </style>
 </head>
 <body>
 
-<h1>🎃 할로윈 퀴즈 응답 통계</h1>
+<div class="header-area">
+    <h1>🎃 할로윈 퀴즈 응답 통계</h1>
+    <a href="/download/csv" class="download-btn">📥 엑셀(CSV) 백업 다운로드</a>
+</div>
 
 <!-- 거점 필터 버튼 영역 -->
 <div class="filter-container">
@@ -233,7 +241,6 @@
     function renderDashboard() {
         if (!rawServerData) return;
 
-        // 거점 필터링 적용
         let filteredUsers = rawServerData.user_responses || [];
         if (currentFilter !== 'ALL') {
             filteredUsers = filteredUsers.filter(u => u.name.includes(`(${currentFilter})`));
@@ -247,8 +254,6 @@
         document.getElementById('total-count').innerText = `${totalCount}명`;
         document.getElementById('avg-time').innerText = `${avgTime}초`;
 
-        // 1. 거점별 문제 답변 집계 재계산
-        const qStats = {q: {1:0, 2:0, 3:0, 4:0}};
         const questionStats = {};
         for(let q=1; q<=10; q++) questionStats[q] = {1:0, 2:0, 3:0, 4:0};
 
@@ -293,7 +298,6 @@
             }
         }
 
-        // 2. 테이블 렌더링
         const tbody = document.getElementById('response-table-body');
         tbody.innerHTML = '';
 
